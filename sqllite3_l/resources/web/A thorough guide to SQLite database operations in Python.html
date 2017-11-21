@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<!-- saved from url=(0072)http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>A thorough guide to SQLite database operations in Python</title>
+    <meta name="description" content="This is the personal website of a data scientist and machine learning enthusiast with a big passion for Python and open source. Born and raised in Germany, now living in East Lansing, Michigan.
+">
+    <style class="anchorjs"></style><link rel="stylesheet" href="./A thorough guide to SQLite database operations in Python_files/main.css">
+    <link rel="stylesheet" href="./A thorough guide to SQLite database operations in Python_files/font-awesome.min.css">
+    <meta property="og:title" content="A thorough guide to SQLite database operations in Python">
+<meta property="og:type" content="article">
+<meta property="og:url" content="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html">
+
+
+  <meta property="og:image" content="">
+
+
+<meta property="og:description" content="Sections
+
+">
+<meta property="og:site_name" content="Sebastian Raschka&#39;s Website">
+<meta property="og:locale" content="en_US">
+
+    <meta property="article:published_time" content="2014-03-07T04:00:00-05:00">
+    <meta property="article:author" content="">
+    
+        <meta property="og:see_also" content="http://sebastianraschka.com/blog/2016/model-evaluation-selection-part2.html">
+    
+        <meta property="og:see_also" content="http://sebastianraschka.com/blog/2016/model-evaluation-selection-part1.html">
+    
+        <meta property="og:see_also" content="http://sebastianraschka.com/blog/2015/writing-pymle.html">
+    
+
+
+<meta property="fb:admins" content="">
+<meta property="fb:app_id" content="">
+
+    <link rel="canonical" href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html">
+
+<script async="" src="./A thorough guide to SQLite database operations in Python_files/async-ads.js.download"></script><script type="text/javascript" async="" src="./A thorough guide to SQLite database operations in Python_files/ga.js.download"></script><style type="text/css">.MathJax_Hover_Frame {border-radius: .25em; -webkit-border-radius: .25em; -moz-border-radius: .25em; -khtml-border-radius: .25em; box-shadow: 0px 0px 15px #83A; -webkit-box-shadow: 0px 0px 15px #83A; -moz-box-shadow: 0px 0px 15px #83A; -khtml-box-shadow: 0px 0px 15px #83A; border: 1px solid #A6D ! important; display: inline-block; position: absolute}
+.MathJax_Menu_Button .MathJax_Hover_Arrow {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 4px; -webkit-border-radius: 4px; -moz-border-radius: 4px; -khtml-border-radius: 4px; font-family: 'Courier New',Courier; font-size: 9px; color: #F0F0F0}
+.MathJax_Menu_Button .MathJax_Hover_Arrow span {display: block; background-color: #AAA; border: 1px solid; border-radius: 3px; line-height: 0; padding: 4px}
+.MathJax_Hover_Arrow:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_Hover_Arrow:hover span {background-color: #CCC!important}
+</style><style type="text/css">#MathJax_About {position: fixed; left: 50%; width: auto; text-align: center; border: 3px outset; padding: 1em 2em; background-color: #DDDDDD; color: black; cursor: default; font-family: message-box; font-size: 120%; font-style: normal; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; border-radius: 15px; -webkit-border-radius: 15px; -moz-border-radius: 15px; -khtml-border-radius: 15px; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_About.MathJax_MousePost {outline: none}
+.MathJax_Menu {position: absolute; background-color: white; color: black; width: auto; padding: 2px; border: 1px solid #CCCCCC; margin: 0; cursor: default; font: menu; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; z-index: 201; box-shadow: 0px 10px 20px #808080; -webkit-box-shadow: 0px 10px 20px #808080; -moz-box-shadow: 0px 10px 20px #808080; -khtml-box-shadow: 0px 10px 20px #808080; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+.MathJax_MenuItem {padding: 2px 2em; background: transparent}
+.MathJax_MenuArrow {position: absolute; right: .5em; padding-top: .25em; color: #666666; font-size: .75em}
+.MathJax_MenuActive .MathJax_MenuArrow {color: white}
+.MathJax_MenuArrow.RTL {left: .5em; right: auto}
+.MathJax_MenuCheck {position: absolute; left: .7em}
+.MathJax_MenuCheck.RTL {right: .7em; left: auto}
+.MathJax_MenuRadioCheck {position: absolute; left: 1em}
+.MathJax_MenuRadioCheck.RTL {right: 1em; left: auto}
+.MathJax_MenuLabel {padding: 2px 2em 4px 1.33em; font-style: italic}
+.MathJax_MenuRule {border-top: 1px solid #CCCCCC; margin: 4px 1px 0px}
+.MathJax_MenuDisabled {color: GrayText}
+.MathJax_MenuActive {background-color: Highlight; color: HighlightText}
+.MathJax_MenuDisabled:focus, .MathJax_MenuLabel:focus {background-color: #E8E8E8}
+.MathJax_ContextMenu:focus {outline: none}
+.MathJax_ContextMenu .MathJax_MenuItem:focus {outline: none}
+#MathJax_AboutClose {top: .2em; right: .2em}
+.MathJax_Menu .MathJax_MenuClose {top: -10px; left: -10px}
+.MathJax_MenuClose {position: absolute; cursor: pointer; display: inline-block; border: 2px solid #AAA; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; font-family: 'Courier New',Courier; font-size: 24px; color: #F0F0F0}
+.MathJax_MenuClose span {display: block; background-color: #AAA; border: 1.5px solid; border-radius: 18px; -webkit-border-radius: 18px; -moz-border-radius: 18px; -khtml-border-radius: 18px; line-height: 0; padding: 8px 0 6px}
+.MathJax_MenuClose:hover {color: white!important; border: 2px solid #CCC!important}
+.MathJax_MenuClose:hover span {background-color: #CCC!important}
+.MathJax_MenuClose:hover:focus {outline: none}
+</style><style type="text/css">.MathJax_Preview .MJXf-math {color: inherit!important}
+</style><style type="text/css">.MJX_Assistive_MathML {position: absolute!important; top: 0; left: 0; clip: rect(1px, 1px, 1px, 1px); padding: 1px 0 0 0!important; border: 0!important; height: 1px!important; width: 1px!important; overflow: hidden!important; display: block!important; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none}
+.MJX_Assistive_MathML.MJX_Assistive_MathML_Block {width: 100%!important}
+</style><style type="text/css">#MathJax_Zoom {position: absolute; background-color: #F0F0F0; overflow: auto; display: block; z-index: 301; padding: .5em; border: 1px solid black; margin: 0; font-weight: normal; font-style: normal; text-align: left; text-indent: 0; text-transform: none; line-height: normal; letter-spacing: normal; word-spacing: normal; word-wrap: normal; white-space: nowrap; float: none; -webkit-box-sizing: content-box; -moz-box-sizing: content-box; box-sizing: content-box; box-shadow: 5px 5px 15px #AAAAAA; -webkit-box-shadow: 5px 5px 15px #AAAAAA; -moz-box-shadow: 5px 5px 15px #AAAAAA; -khtml-box-shadow: 5px 5px 15px #AAAAAA; filter: progid:DXImageTransform.Microsoft.dropshadow(OffX=2, OffY=2, Color='gray', Positive='true')}
+#MathJax_ZoomOverlay {position: absolute; left: 0; top: 0; z-index: 300; display: inline-block; width: 100%; height: 100%; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+#MathJax_ZoomFrame {position: relative; display: inline-block; height: 0; width: 0}
+#MathJax_ZoomEventTrap {position: absolute; left: 0; top: 0; z-index: 302; display: inline-block; border: 0; padding: 0; margin: 0; background-color: white; opacity: 0; filter: alpha(opacity=0)}
+</style><style type="text/css">.MathJax_Preview {color: #888}
+#MathJax_Message {position: fixed; left: 1em; bottom: 1.5em; background-color: #E6E6E6; border: 1px solid #959595; margin: 0px; padding: 2px 8px; z-index: 102; color: black; font-size: 80%; width: auto; white-space: nowrap}
+#MathJax_MSIE_Frame {position: absolute; top: 0; left: 0; width: 0px; z-index: 101; border: 0px; margin: 0px; padding: 0px}
+.MathJax_Error {color: #CC0000; font-style: italic}
+</style><style type="text/css">.gscb_a{display:inline-block;font:27px/13px arial,sans-serif}.gsst_a .gscb_a{color:#a1b9ed;cursor:pointer}.gsst_a:hover .gscb_a,.gsst_a:focus .gscb_a{color:#36c}.gsst_a{display:inline-block}.gsst_a{cursor:pointer;padding:0 4px}.gsst_a:hover{text-decoration:none!important}.gsst_b{font-size:16px;padding:0 2px;position:relative;user-select:none;-webkit-user-select:none;white-space:nowrap}.gsst_e{opacity:0.55;}.gsst_a:hover .gsst_e,.gsst_a:focus .gsst_e{opacity:0.72;}.gsst_a:active .gsst_e{opacity:1;}.gsst_f{background:white;text-align:left}.gsst_g{background-color:white;border:1px solid #ccc;border-top-color:#d9d9d9;box-shadow:0 2px 4px rgba(0,0,0,0.2);-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.2);margin:-1px -3px;padding:0 6px}.gsst_h{background-color:white;height:1px;margin-bottom:-1px;position:relative;top:-1px}.gsib_a{width:100%;padding:4px 6px 0}.gsib_a,.gsib_b{vertical-align:top}.gssb_c{border:0;position:absolute;z-index:989}.gssb_e{border:1px solid #ccc;border-top-color:#d9d9d9;box-shadow:0 2px 4px rgba(0,0,0,0.2);-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:default}.gssb_f{visibility:hidden;white-space:nowrap}.gssb_k{border:0;display:block;position:absolute;top:0;z-index:988}.gsdd_a{border:none!important}.gscsep_a{display:none}.gsq_a{padding:0}.gssb_a{padding:0 7px}.gssb_a,.gssb_a td{white-space:nowrap;overflow:hidden;line-height:22px}#gssb_b{font-size:11px;color:#36c;text-decoration:none}#gssb_b:hover{font-size:11px;color:#36c;text-decoration:underline}.gssb_g{text-align:center;padding:8px 0 7px;position:relative}.gssb_h{font-size:15px;height:28px;margin:0.2em;-webkit-appearance:button}.gssb_i{background:#eee}.gss_ifl{visibility:hidden;padding-left:5px}.gssb_i .gss_ifl{visibility:visible}a.gssb_j{font-size:13px;color:#36c;text-decoration:none;line-height:100%}a.gssb_j:hover{text-decoration:underline}.gssb_l{height:1px;background-color:#e5e5e5}.gssb_m{color:#000;background:#fff}.gsfe_a{border:1px solid #b9b9b9;border-top-color:#a0a0a0;box-shadow:inset 0px 1px 2px rgba(0,0,0,0.1);-moz-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.1);-webkit-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.1);}.gsfe_b{border:1px solid #4d90fe;outline:none;box-shadow:inset 0px 1px 2px rgba(0,0,0,0.3);-moz-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.3);-webkit-box-shadow:inset 0px 1px 2px rgba(0,0,0,0.3);}.gssb_a{padding:0 7px}.gssb_e{border:0}.gssb_l{margin:5px 0}.gssb_c .gsc-completion-container{position:static}.gssb_c{z-index:5000}.gsc-completion-container table{background:transparent;font-size:inherit;font-family:inherit}.gssb_c > tbody > tr,.gssb_c > tbody > tr > td,.gssb_d,.gssb_d > tbody > tr,.gssb_d > tbody > tr > td,.gssb_e,.gssb_e > tbody > tr,.gssb_e > tbody > tr > td{padding:0;margin:0;border:0}.gssb_a table,.gssb_a table tr,.gssb_a table tr td{padding:0;margin:0;border:0}</style><style type="text/css">.MJXp-script {font-size: .8em}
+.MJXp-right {-webkit-transform-origin: right; -moz-transform-origin: right; -ms-transform-origin: right; -o-transform-origin: right; transform-origin: right}
+.MJXp-bold {font-weight: bold}
+.MJXp-italic {font-style: italic}
+.MJXp-scr {font-family: MathJax_Script,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-frak {font-family: MathJax_Fraktur,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-sf {font-family: MathJax_SansSerif,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-cal {font-family: MathJax_Caligraphic,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-mono {font-family: MathJax_Typewriter,'Times New Roman',Times,STIXGeneral,serif}
+.MJXp-largeop {font-size: 150%}
+.MJXp-largeop.MJXp-int {vertical-align: -.2em}
+.MJXp-math {display: inline-block; line-height: 1.2; text-indent: 0; font-family: 'Times New Roman',Times,STIXGeneral,serif; white-space: nowrap; border-collapse: collapse}
+.MJXp-display {display: block; text-align: center; margin: 1em 0}
+.MJXp-math span {display: inline-block}
+.MJXp-box {display: block!important; text-align: center}
+.MJXp-box:after {content: " "}
+.MJXp-rule {display: block!important; margin-top: .1em}
+.MJXp-char {display: block!important}
+.MJXp-mo {margin: 0 .15em}
+.MJXp-mfrac {margin: 0 .125em; vertical-align: .25em}
+.MJXp-denom {display: inline-table!important; width: 100%}
+.MJXp-denom > * {display: table-row!important}
+.MJXp-surd {vertical-align: top}
+.MJXp-surd > * {display: block!important}
+.MJXp-script-box > *  {display: table!important; height: 50%}
+.MJXp-script-box > * > * {display: table-cell!important; vertical-align: top}
+.MJXp-script-box > *:last-child > * {vertical-align: bottom}
+.MJXp-script-box > * > * > * {display: block!important}
+.MJXp-mphantom {visibility: hidden}
+.MJXp-munderover {display: inline-table!important}
+.MJXp-over {display: inline-block!important; text-align: center}
+.MJXp-over > * {display: block!important}
+.MJXp-munderover > * {display: table-row!important}
+.MJXp-mtable {vertical-align: .25em; margin: 0 .125em}
+.MJXp-mtable > * {display: inline-table!important; vertical-align: middle}
+.MJXp-mtr {display: table-row!important}
+.MJXp-mtd {display: table-cell!important; text-align: center; padding: .5em 0 0 .5em}
+.MJXp-mtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-mlabeledtr {display: table-row!important}
+.MJXp-mlabeledtr > .MJXp-mtd:first-child {padding-left: 0}
+.MJXp-mlabeledtr:first-child > .MJXp-mtd {padding-top: 0}
+.MJXp-merror {background-color: #FFFF88; color: #CC0000; border: 1px solid #CC0000; padding: 1px 3px; font-style: normal; font-size: 90%}
+.MJXp-scale0 {-webkit-transform: scaleX(.0); -moz-transform: scaleX(.0); -ms-transform: scaleX(.0); -o-transform: scaleX(.0); transform: scaleX(.0)}
+.MJXp-scale1 {-webkit-transform: scaleX(.1); -moz-transform: scaleX(.1); -ms-transform: scaleX(.1); -o-transform: scaleX(.1); transform: scaleX(.1)}
+.MJXp-scale2 {-webkit-transform: scaleX(.2); -moz-transform: scaleX(.2); -ms-transform: scaleX(.2); -o-transform: scaleX(.2); transform: scaleX(.2)}
+.MJXp-scale3 {-webkit-transform: scaleX(.3); -moz-transform: scaleX(.3); -ms-transform: scaleX(.3); -o-transform: scaleX(.3); transform: scaleX(.3)}
+.MJXp-scale4 {-webkit-transform: scaleX(.4); -moz-transform: scaleX(.4); -ms-transform: scaleX(.4); -o-transform: scaleX(.4); transform: scaleX(.4)}
+.MJXp-scale5 {-webkit-transform: scaleX(.5); -moz-transform: scaleX(.5); -ms-transform: scaleX(.5); -o-transform: scaleX(.5); transform: scaleX(.5)}
+.MJXp-scale6 {-webkit-transform: scaleX(.6); -moz-transform: scaleX(.6); -ms-transform: scaleX(.6); -o-transform: scaleX(.6); transform: scaleX(.6)}
+.MJXp-scale7 {-webkit-transform: scaleX(.7); -moz-transform: scaleX(.7); -ms-transform: scaleX(.7); -o-transform: scaleX(.7); transform: scaleX(.7)}
+.MJXp-scale8 {-webkit-transform: scaleX(.8); -moz-transform: scaleX(.8); -ms-transform: scaleX(.8); -o-transform: scaleX(.8); transform: scaleX(.8)}
+.MJXp-scale9 {-webkit-transform: scaleX(.9); -moz-transform: scaleX(.9); -ms-transform: scaleX(.9); -o-transform: scaleX(.9); transform: scaleX(.9)}
+.MathJax_PHTML .noError {vertical-align: ; font-size: 90%; text-align: left; color: black; padding: 1px 3px; border: 1px solid}
+</style></head>
+
+
+  <body><div id="MathJax_Message" style="display: none;"></div>
+    <header class="site-header">
+
+  <div class="wrapper">
+
+    <a class="site-title" href="http://sebastianraschka.com/" style="text-decoration: none;">sebastian<span style="color:#4099ff">raschka</span></a>
+
+    <nav class="site-nav">
+      <a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#" class="menu-icon">
+        <svg viewBox="0 0 18 15">
+          <path fill="#424242" d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.031C17.335,0,18,0.665,18,1.484L18,1.484z"></path>
+          <path fill="#424242" d="M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0c0-0.82,0.665-1.484,1.484-1.484 h15.031C17.335,6.031,18,6.696,18,7.516L18,7.516z"></path>
+          <path fill="#424242" d="M18,13.516C18,14.335,17.335,15,16.516,15H1.484C0.665,15,0,14.335,0,13.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.031C17.335,12.031,18,12.696,18,13.516L18,13.516z"></path>
+        </svg>
+      </a>
+
+
+      <div class="trigger">
+        
+          
+          <a class="page-link" href="http://sebastianraschka.com/about/">About</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="http://sebastianraschka.com/books.html">Books</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="http://sebastianraschka.com/elsewhere.html">Elsewhere</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="http://sebastianraschka.com/projects.html">Projects</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+          <a class="page-link" href="http://sebastianraschka.com/resources.html">Resources</a>
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+          
+        
+        <a class="page-link" href="http://sebastianraschka.com/blog/index.html">Blog</a>
+        <a class="page-link" href="http://sebastianraschka.com/faq/index.html">Machine&nbsp;Learning&nbsp;FAQ</a>
+
+
+      </div>
+
+    </nav>
+
+  </div>
+
+</header>
+
+
+    <div class="page-content">
+      <div class="wrapper">
+        <script src="./A thorough guide to SQLite database operations in Python_files/MathJax.js.download" type="text/javascript"></script>
+
+<div class="post">
+  <header class="post-header">
+
+
+
+    <div class="rss">
+
+
+
+<table style="width:100%">
+  <tbody><tr>
+   <td>  <div class="search_form">
+            <div id="cse"><div class="gsc-control-cse gsc-control-cse-en"><div class="gsc-control-wrapper-cse" dir="ltr"><form class="gsc-search-box" accept-charset="utf-8"><table cellspacing="0" cellpadding="0" class="gsc-search-box"><tbody><tr><td class="gsc-input"><input autocomplete="off" type="text" size="10" class=" gsc-input" name="search" title="search" id="gsc-i-id1" dir="ltr" spellcheck="false" style="outline: none;"><input type="hidden" name="bgresponse" id="bgresponse"></td><td class="gsc-search-button"><input type="button" value="Search" class="gsc-search-button" title="search"></td><td class="gsc-clear-button"><div class="gsc-clear-button" title="clear results">&nbsp;</div></td></tr></tbody></table><table cellspacing="0" cellpadding="0" class="gsc-branding"><tbody><tr style="display: none;"><td class="gsc-branding-user-defined"></td><td class="gsc-branding-text"><div class="gsc-branding-text">powered by</div></td><td class="gsc-branding-img"><img src="./A thorough guide to SQLite database operations in Python_files/small-logo.png" class="gsc-branding-img"></td></tr></tbody></table></form><div class="gsc-results-wrapper-nooverlay"><div class="gsc-tabsAreaInvisible"><div class="gsc-tabHeader gsc-inline-block gsc-tabhActive">Custom Search</div><span class="gs-spacer"> </span></div><div class="gsc-tabsAreaInvisible"></div><div class="gsc-above-wrapper-area-invisible"><table cellspacing="0" cellpadding="0" class="gsc-above-wrapper-area-container"><tbody><tr><td class="gsc-result-info-container"><div class="gsc-result-info-invisible"></div></td></tr></tbody></table></div><div class="gsc-adBlockInvisible"></div><div class="gsc-wrapper"><div class="gsc-adBlockInvisible"></div><div class="gsc-resultsbox-invisible"><div class="gsc-resultsRoot gsc-tabData gsc-tabdActive"><table cellspacing="0" cellpadding="0" class="gsc-resultsHeader"><tbody><tr><td class="gsc-twiddleRegionCell"><div class="gsc-twiddle"><div class="gsc-title">Web</div></div><div class="gsc-stats"></div><div class="gsc-results-selector gsc-all-results-active"><div class="gsc-result-selector gsc-one-result" title="show one result">&nbsp;</div><div class="gsc-result-selector gsc-more-results" title="show more results">&nbsp;</div><div class="gsc-result-selector gsc-all-results" title="show all results">&nbsp;</div></div></td><td class="gsc-configLabelCell"></td></tr></tbody></table><div><div class="gsc-expansionArea"></div></div></div></div></div></div></div></div></div>
+         </div>
+   </td>
+   <td>
+     
+     <a href="http://sebastianraschka.com/rss_feed.xml"><span><i class="fa fa-rss fa-2x"></i>[RSS]</span></a>
+
+     
+   </td>
+  </tr>
+</tbody></table>
+
+
+</div>
+
+
+    <h1 class="post-title">A thorough guide to SQLite database operations in Python</h1>
+    <h2 class="post-title"></h2>
+
+
+
+
+
+
+    <div style="height: 15px;"></div>
+    <p class="post-meta">Mar 7, 2014 <br>by Sebastian Raschka</p>
+  </header>
+
+  <article class="post-content">
+    <h4 id="sections">Sections</h4>
+
+<ul id="markdown-toc">
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#sections" id="markdown-toc-sections">Sections</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#connecting-to-an-sqlite-database" id="markdown-toc-connecting-to-an-sqlite-database">Connecting to an SQLite database</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#creating-a-new-sqlite-database" id="markdown-toc-creating-a-new-sqlite-database">Creating a new SQLite database</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#adding-new-columns" id="markdown-toc-adding-new-columns">Adding new columns</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#inserting-and-updating-rows" id="markdown-toc-inserting-and-updating-rows">Inserting and updating rows</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#creating-unique-indexes" id="markdown-toc-creating-unique-indexes">Creating unique indexes</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#querying-the-database---selecting-rows" id="markdown-toc-querying-the-database---selecting-rows">Querying the database - Selecting rows</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#security-and-injection-attacks" id="markdown-toc-security-and-injection-attacks">Security and injection attacks</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#date-and-time-operations" id="markdown-toc-date-and-time-operations">Date and time operations</a>    <ul>
+      <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#update-mar-16-2014" id="markdown-toc-update-mar-16-2014">Update Mar 16, 2014:</a></li>
+    </ul>
+  </li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#retrieving-column-names" id="markdown-toc-retrieving-column-names">Retrieving column names</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#printing-a-database-summary" id="markdown-toc-printing-a-database-summary">Printing a database summary</a></li>
+  <li><a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#conclusion" id="markdown-toc-conclusion">Conclusion</a></li>
+</ul>
+
+<p>The complete Python code that I am using in this tutorial can be
+downloaded from my GitHub repository:
+<a href="https://github.com/rasbt/python_reference/tree/master/tutorials/sqlite3_howto">https://github.com/rasbt/python_reference/tree/master/sqlite3_howto</a></p>
+
+<hr>
+
+<h2 id="connecting-to-an-sqlite-database">Connecting to an SQLite database</h2>
+
+<p>The sqlite3 that we will be using throughout this tutorial is part of
+the Python Standard Library and is a nice and easy interface to SQLite
+databases: There are no server processes involved, no configurations
+required, and no other obstacles we have to worry about.</p>
+
+<p>In general, the only thing that needs to be done before we can perform
+any operation on a SQLite database via Python’s <code class="highlighter-rouge">sqlite3</code> module, is to
+open a connection to an SQLite database file:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>where the database file (<code class="highlighter-rouge">sqlite_file</code>) can reside anywhere on our disk,
+e.g.,</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'/Users/Sebastian/Desktop/my_db.sqlite'</span>
+</code></pre>
+</div>
+
+<p>Conveniently, a new database file (<code class="highlighter-rouge">.sqlite</code> file) will be created
+automatically the first time we try to connect to a database. However,
+we have to be aware that it won’t have a table, yet. In the following
+section, we will take a look at some example code of how to create a new
+SQLite database files with tables for storing some data.</p>
+
+<p>To round up this section about connecting to a SQLite database file,
+there are two more operations that are worth mentioning. If we are
+finished with our operations on the database file, we have to close the
+connection via the <code class="highlighter-rouge">.close()</code> method:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>And if we performed any operation on the database other than sending
+queries, we need to commit those changes via the <code class="highlighter-rouge">.commit()</code> method
+before we close the connection:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<h2 id="creating-a-new-sqlite-database">Creating a new SQLite database</h2>
+
+<p>Let us have a look at some example code to create a new SQLite database
+file with two tables: One with and one without a PRIMARY KEY column
+(don’t worry, there is more information about PRIMARY KEYs further down
+in this section).</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>    <span class="c"># name of the sqlite database file</span>
+<span class="n">table_name1</span> <span class="o">=</span> <span class="s">'my_table_1'</span>  <span class="c"># name of the table to be created</span>
+<span class="n">table_name2</span> <span class="o">=</span> <span class="s">'my_table_2'</span>  <span class="c"># name of the table to be created</span>
+<span class="n">new_field</span> <span class="o">=</span> <span class="s">'my_1st_column'</span> <span class="c"># name of the column</span>
+<span class="n">field_type</span> <span class="o">=</span> <span class="s">'INTEGER'</span>  <span class="c"># column data type</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># Creating a new SQLite table with 1 column</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'CREATE TABLE {tn} ({nf} {ft})'</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name1</span><span class="p">,</span> <span class="n">nf</span><span class="o">=</span><span class="n">new_field</span><span class="p">,</span> <span class="n">ft</span><span class="o">=</span><span class="n">field_type</span><span class="p">))</span>
+
+<span class="c"># Creating a second table with 1 column and set it as PRIMARY KEY</span>
+<span class="c"># note that PRIMARY KEY column must consist of unique values!</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'CREATE TABLE {tn} ({nf} {ft} PRIMARY KEY)'</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name2</span><span class="p">,</span> <span class="n">nf</span><span class="o">=</span><span class="n">new_field</span><span class="p">,</span> <span class="n">ft</span><span class="o">=</span><span class="n">field_type</span><span class="p">))</span>
+
+<span class="c"># Committing changes and closing the connection to the database file</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Download the script at:
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/create_new_db.py"><code class="highlighter-rouge">create_new_db.py</code></a></p>
+
+<hr>
+
+<p><strong>Tip:</strong> <br>
+A handy tool to visualize and access SQLite databases is the
+free FireFox <a href="https://addons.mozilla.org/en-US/firefox/addon/sqlite-manager/?src">SQLite
+Manager</a>
+add-on. Throughout this article, I will use this tool to provide
+screenshots of the database structures that we created below the
+corresponding code sections.</p>
+
+<hr>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/1_sqlite3_init_db.png" alt="1_sqlite3_init_db.png"></p>
+
+<p>Using the code above, we created a new <code class="highlighter-rouge">.sqlite</code> database file with 2
+tables. Each table consists of currently one column only, which is of
+type INTEGER.</p>
+
+<hr>
+
+<p><strong>Here is a quick overview of all data types that are supported by
+SQLite 3:</strong></p>
+
+<ul>
+  <li>INTEGER: A signed integer up to 8 bytes depending on the magnitude
+of the value.</li>
+  <li>REAL: An 8-byte floating point value.</li>
+  <li>TEXT: A text string, typically UTF-8 encoded (depending on the
+database encoding).</li>
+  <li>BLOB: A blob of data (binary large object) for storing binary data.</li>
+  <li>NULL: A NULL value, represents missing data or an empty cell.</li>
+</ul>
+
+<hr>
+
+<p>Looking at the table above, You might have noticed that SQLite 3 has no
+designated Boolean data type. However, this should not be an issue,
+since we could simply re-purpose the INTEGER type to represent Boolean
+values (0 = false, 1 = true).</p>
+
+<p><strong>A quick word on PRIMARY KEYS:</strong></p>
+
+<p>In our example code above, we set our 1 column in the second table to
+PRIMARY KEY. The advantage of a PRIMARY KEY index is a significant
+performance gain if we use the PRIMARY KEY column as query for accessing
+rows in the table. Every table can only have max. 1 PRIMARY KEY (single
+or multiple column(s)), and the values in this column MUST be unique!
+But more on column indexing in the a <a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#unique_indexes">later section</a>.</p>
+
+<h2 id="adding-new-columns">Adding new columns</h2>
+
+<p>If we want to add a new column to an existing SQLite database table, we
+can either leave the cells for each row empty (NULL value), or we can
+set a default value for each cell, which is pretty convenient for
+certain applications.<br>
+Let’s have a look at some code:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>    <span class="c"># name of the sqlite database file</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_2'</span>   <span class="c"># name of the table to be created</span>
+<span class="n">id_column</span> <span class="o">=</span> <span class="s">'my_1st_column'</span> <span class="c"># name of the PRIMARY KEY column</span>
+<span class="n">new_column1</span> <span class="o">=</span> <span class="s">'my_2nd_column'</span>  <span class="c"># name of the new column</span>
+<span class="n">new_column2</span> <span class="o">=</span> <span class="s">'my_3nd_column'</span>  <span class="c"># name of the new column</span>
+<span class="n">column_type</span> <span class="o">=</span> <span class="s">'TEXT'</span> <span class="c"># E.g., INTEGER, TEXT, NULL, REAL, BLOB</span>
+<span class="n">default_val</span> <span class="o">=</span> <span class="s">'Hello World'</span> <span class="c"># a default value for the new column rows</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># A) Adding a new column without a row value</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"ALTER TABLE {tn} ADD COLUMN '{cn}' {ct}"</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">new_column1</span><span class="p">,</span> <span class="n">ct</span><span class="o">=</span><span class="n">column_type</span><span class="p">))</span>
+
+<span class="c"># B) Adding a new column with a default row value</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"ALTER TABLE {tn} ADD COLUMN '{cn}' {ct} DEFAULT '{df}'"</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">new_column2</span><span class="p">,</span> <span class="n">ct</span><span class="o">=</span><span class="n">column_type</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="n">default_val</span><span class="p">))</span>
+
+<span class="c"># Committing changes and closing the connection to the database file</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Download the script:</p>
+
+<p><a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/add_new_column.py">add_new_column.py</a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/2_sqlite3_add_col.png" alt="2_sqlite3_add_col.png"></p>
+
+<p>We just added 2 more columns (<code class="highlighter-rouge">my_2nd_column</code> and <code class="highlighter-rouge">my_3rd_column</code>) to
+<code class="highlighter-rouge">my_table_2</code> of our SQLite database next to the PRIMARY KEY column
+<code class="highlighter-rouge">my_1st_column</code>.<br>
+The difference between the two new columns is that we initialized
+<code class="highlighter-rouge">my_3rd_column</code> with a default value (here:’Hello World’), which will be
+inserted for every existing cell under this column and for every new row
+that we are going to add to the table if we don’t insert or update it
+with a different value.</p>
+
+<h2 id="inserting-and-updating-rows">Inserting and updating rows</h2>
+
+<p>Inserting and updating rows into an existing SQLite database table -
+next to sending queries - is probably the most common database
+operation. The Structured Query Language has a convenient <code class="highlighter-rouge">UPSERT</code>
+function, which is basically just a merge between UPDATE and INSERT: It
+inserts new rows into a database table with a value for the PRIMARY KEY
+column if it does not exist yet, or updates a row for an existing
+PRIMARY KEY value. Unfortunately, this convenient syntax is not
+supported by the more compact SQLite database implementation that we are
+using here. However, there are some workarounds. But let us first have a
+look at the example code:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_2'</span>
+<span class="n">id_column</span> <span class="o">=</span> <span class="s">'my_1st_column'</span>
+<span class="n">column_name</span> <span class="o">=</span> <span class="s">'my_2nd_column'</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># A) Inserts an ID with a specific value in a second column</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"INSERT INTO {tn} ({idf}, {cn}) VALUES (123456, 'test')"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_name</span><span class="p">))</span>
+<span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">IntegrityError</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'ERROR: ID already exists in PRIMARY KEY column {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">id_column</span><span class="p">))</span>
+
+<span class="c"># B) Tries to insert an ID (if it does not exist yet)</span>
+<span class="c"># with a specific value in a second column</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"INSERT OR IGNORE INTO {tn} ({idf}, {cn}) VALUES (123456, 'test')"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_name</span><span class="p">))</span>
+
+<span class="c"># C) Updates the newly inserted or pre-existing entry            </span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"UPDATE {tn} SET {cn}=('Hi World') WHERE {idf}=(123456)"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">))</span>
+
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Download the script:<br>
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/update_or_insert_records.py">update_or_insert_records.py</a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/3_sqlite3_insert_update.png" alt="3_sqlite3_insert_update.png"></p>
+
+<p>Both A) <code class="highlighter-rouge">INSERT</code> and B) <code class="highlighter-rouge">INSERT OR IGNORE</code> have in common that they
+append new rows to the database if a given PRIMARY KEY does not exist in
+the database table, yet. However, if we’d try to append a PRIMARY KEY
+value that is not unique, a simple <code class="highlighter-rouge">INSERT</code> would raise an
+<code class="highlighter-rouge">sqlite3.IntegrityError</code> exception, which can be either captured via a
+try-except statement (case A) or circumvented by the SQLite call
+<code class="highlighter-rouge">INSERT OR IGNORE</code> (case B). This can be pretty useful if we want to
+construct an <code class="highlighter-rouge">UPSERT</code> equivalent in SQLite. E.g., if we want to add a
+dataset to an existing database table that contains a mix between
+existing and new IDs for our PRIMARY KEY column.</p>
+
+<h2 id="creating-unique-indexes">Creating unique indexes</h2>
+
+<p>Just like hashtable-datastructures, indexes function as direct pointers
+to our data in a table for a particular column (i.e., the indexed
+column). For example, the PRIMARY KEY column would have such an index by
+default. The downside of indexes is that every row value in the column
+must be unique. However, it is recommended and pretty useful to index
+certain columns if possible, since it rewards us with a significant
+performance gain for the data retrieval.<br>
+ The example code below shows how to add such an unique index to an
+existing column in an SQLite database table. And if we should decide to
+insert non-unique values into a indexed column later, there is also a
+convenient way to drop the index, which is also shown in the code below.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>    <span class="c"># name of the sqlite database file</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_2'</span>   <span class="c"># name of the table to be created</span>
+<span class="n">id_column</span> <span class="o">=</span> <span class="s">'my_1st_column'</span> <span class="c"># name of the PRIMARY KEY column</span>
+<span class="n">new_column</span> <span class="o">=</span> <span class="s">'unique_names'</span>  <span class="c"># name of the new column</span>
+<span class="n">column_type</span> <span class="o">=</span> <span class="s">'TEXT'</span> <span class="c"># E.g., INTEGER, TEXT, NULL, REAL, BLOB</span>
+<span class="n">index_name</span> <span class="o">=</span> <span class="s">'my_unique_index'</span>  <span class="c"># name for the new unique index</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># Adding a new column and update some record</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"ALTER TABLE {tn} ADD COLUMN '{cn}' {ct}"</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">new_column</span><span class="p">,</span> <span class="n">ct</span><span class="o">=</span><span class="n">column_type</span><span class="p">))</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"UPDATE {tn} SET {cn}='sebastian_r' WHERE {idf}=123456"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">new_column</span><span class="p">))</span>
+
+<span class="c"># Creating an unique index</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'CREATE INDEX {ix} on {tn}({cn})'</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ix</span><span class="o">=</span><span class="n">index_name</span><span class="p">,</span> <span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">new_column</span><span class="p">))</span>
+
+<span class="c"># Dropping the unique index</span>
+<span class="c"># E.g., to avoid future conflicts with update/insert functions</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'DROP INDEX {ix}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ix</span><span class="o">=</span><span class="n">index_name</span><span class="p">))</span>
+
+<span class="c"># Committing changes and closing the connection to the database file</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+<p>Download the script:<br>
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/create_unique_index.py">create_unique_index.py</a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/4_sqlite3_unique_index.png" alt="4_sqlite3_unique_index.png"></p>
+
+<h2 id="querying-the-database---selecting-rows">Querying the database - Selecting rows</h2>
+
+<p>After we learned about how to create and modify SQLite databases, it’s
+about time for some data retrieval. The code below illustrates how we
+can retrieve row entries for all or some columns if they match certain
+criteria.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>    <span class="c"># name of the sqlite database file</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_2'</span>   <span class="c"># name of the table to be queried</span>
+<span class="n">id_column</span> <span class="o">=</span> <span class="s">'my_1st_column'</span>
+<span class="n">some_id</span> <span class="o">=</span> <span class="mi">123456</span>
+<span class="n">column_2</span> <span class="o">=</span> <span class="s">'my_2nd_column'</span>
+<span class="n">column_3</span> <span class="o">=</span> <span class="s">'my_3rd_column'</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># 1) Contents of all columns for row that match a certain value in 1 column</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'SELECT * FROM {tn} WHERE {cn}="Hi World"'</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">))</span>
+<span class="n">all_rows</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'1):'</span><span class="p">,</span> <span class="n">all_rows</span><span class="p">)</span>
+
+<span class="c"># 2) Value of a particular column for rows that match a certain value in column_1</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'SELECT ({coi}) FROM {tn} WHERE {cn}="Hi World"'</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">coi</span><span class="o">=</span><span class="n">column_2</span><span class="p">,</span> <span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">))</span>
+<span class="n">all_rows</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'2):'</span><span class="p">,</span> <span class="n">all_rows</span><span class="p">)</span>
+
+<span class="c"># 3) Value of 2 particular columns for rows that match a certain value in 1 column</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'SELECT {coi1},{coi2} FROM {tn} WHERE {coi1}="Hi World"'</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">coi1</span><span class="o">=</span><span class="n">column_2</span><span class="p">,</span> <span class="n">coi2</span><span class="o">=</span><span class="n">column_3</span><span class="p">,</span> <span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">))</span>
+<span class="n">all_rows</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'3):'</span><span class="p">,</span> <span class="n">all_rows</span><span class="p">)</span>
+
+<span class="c"># 4) Selecting only up to 10 rows that match a certain value in 1 column</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'SELECT * FROM {tn} WHERE {cn}="Hi World" LIMIT 10'</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">))</span>
+<span class="n">ten_rows</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'4):'</span><span class="p">,</span> <span class="n">ten_rows</span><span class="p">)</span>
+
+<span class="c"># 5) Check if a certain ID exists and print its column contents</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"SELECT * FROM {tn} WHERE {idf}={my_id}"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">,</span> <span class="n">my_id</span><span class="o">=</span><span class="n">some_id</span><span class="p">))</span>
+<span class="n">id_exists</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+<span class="k">if</span> <span class="n">id_exists</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'5): {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">id_exists</span><span class="p">))</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">'5): {} does not exist'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">some_id</span><span class="p">))</span>
+
+<span class="c"># Closing the connection to the database file</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Download the script:<br>
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/selecting_entries.py">selecting_entries.py</a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/4_sqlite3_unique_index.png" alt="4_sqlite3_unique_index.png"></p>
+
+<p>if we use the <code class="highlighter-rouge">.fetchall()</code> method, we return a list of tuples from the
+database query, where each tuple represents one row entry. The print
+output for the 5 different cases shown in the code above would look like
+this (note that we only have a table with 1 row here):\</p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/6_sqlite3_print_selecting_rows.png" alt="6_sqlite3_print_selecting_rows.png"></p>
+
+<h2 id="security-and-injection-attacks">Security and injection attacks</h2>
+
+<p>So far, we have been using Python’s string formatting method to insert
+parameters like table and column names into the <code class="highlighter-rouge">c.execute()</code> functions.
+This is fine if we just want to use the database for ourselves. However,
+this leaves our database vulnerable to injection attacks. For example,
+if our database would be part of a web application, it would allow
+hackers to directly communicate with the database in order to bypass
+login and password verification and steal data.<br>
+ In order to prevent this, it is recommended to use <code class="highlighter-rouge">?</code> place holders in
+the SQLite commands instead of the <code class="highlighter-rouge">%</code> formatting expression or the
+<code class="highlighter-rouge">.format()</code> method, which we have been using in this tutorial.<br>
+ For example, instead of using</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="c"># 5) Check if a certain ID exists and print its column contents</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"SELECT * FROM {tn} WHERE {idf}={my_id}"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">,</span> <span class="n">my_id</span><span class="o">=</span><span class="n">some_id</span><span class="p">))</span>
+</code></pre>
+</div>
+
+<p>in the <a href="http://sebastianraschka.com/Articles/2014_sqlite_in_python_tutorial.html#querying">Querying the database - Selecting rows</a> section
+above, we would want to use the <code class="highlighter-rouge">?</code> placeholder for the queried column
+value and include the variable(s) (here: <code class="highlighter-rouge">123456</code>), which we want to
+insert, as tuple at the end of the <code class="highlighter-rouge">c.execute()</code> string.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="c"># 5) Check if a certain ID exists and print its column contents</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"SELECT * FROM {tn} WHERE {idf}=?"</span><span class="o">.</span>\
+        <span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">column_2</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_column</span><span class="p">),</span> <span class="p">(</span><span class="mi">123456</span><span class="p">,))</span>
+</code></pre>
+</div>
+
+<p>However, the problem with this approach is that it would only work for
+values, not for column or table names. So what are we supposed to do
+with the rest of the string if we want to protect ourselves from
+injection attacks? The easy solution would be to refrain from using
+variables in SQLite queries whenever possible, and if it cannot be
+avoided, we would want to use a function that strips all
+non-alphanumerical characters from the stored content of the variable,
+e.g.,</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="k">def</span> <span class="nf">clean_name</span><span class="p">(</span><span class="n">some_var</span><span class="p">):</span>
+    <span class="k">return</span> <span class="s">''</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">char</span> <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">some_var</span> <span class="k">if</span> <span class="n">char</span><span class="o">.</span><span class="n">isalnum</span><span class="p">())</span>
+</code></pre>
+</div>
+
+<h2 id="date-and-time-operations">Date and time operations</h2>
+
+<p>SQLite inherited the convenient date and time operations from SQL, which
+are one of my favorite features of the Structured Query Language: It
+does not only allow us to insert dates and times in various different
+formats, but we can also perform simple <code class="highlighter-rouge">+</code> and <code class="highlighter-rouge">-</code> arithmetic, for
+example to look up entries that have been added xxx days ago.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>    <span class="c"># name of the sqlite database file</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_3'</span>   <span class="c"># name of the table to be created</span>
+<span class="n">id_field</span> <span class="o">=</span> <span class="s">'id'</span> <span class="c"># name of the ID column</span>
+<span class="n">date_col</span> <span class="o">=</span> <span class="s">'date'</span> <span class="c"># name of the date column</span>
+<span class="n">time_col</span> <span class="o">=</span> <span class="s">'time'</span><span class="c"># name of the time column</span>
+<span class="n">date_time_col</span> <span class="o">=</span> <span class="s">'date_time'</span> <span class="c"># name of the date &amp; time column</span>
+<span class="n">field_type</span> <span class="o">=</span> <span class="s">'TEXT'</span>  <span class="c"># column data type</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># Creating a new SQLite table with 1 column</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'CREATE TABLE {tn} ({fn} {ft} PRIMARY KEY)'</span>\
+        <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">fn</span><span class="o">=</span><span class="n">id_field</span><span class="p">,</span> <span class="n">ft</span><span class="o">=</span><span class="n">field_type</span><span class="p">))</span>
+
+<span class="c"># A) Adding a new column to save date insert a row with the current date</span>
+<span class="c"># in the following format: YYYY-MM-DD</span>
+<span class="c"># e.g., 2014-03-06</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"ALTER TABLE {tn} ADD COLUMN '{cn}'"</span>\
+         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">date_col</span><span class="p">))</span>
+<span class="c"># insert a new row with the current date and time, e.g., 2014-03-06</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"INSERT INTO {tn} ({idf}, {cn}) VALUES('some_id1', DATE('now'))"</span>\
+         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_field</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">date_col</span><span class="p">))</span>
+
+<span class="c"># B) Adding a new column to save date and time and update with the current time</span>
+<span class="c"># in the following format: HH:MM:SS</span>
+<span class="c"># e.g., 16:26:37</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"ALTER TABLE {tn} ADD COLUMN '{cn}'"</span>\
+         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">time_col</span><span class="p">))</span>
+<span class="c"># update row for the new current date and time column, e.g., 2014-03-06 16:26:37</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"UPDATE {tn} SET {cn}=TIME('now') WHERE {idf}='some_id1'"</span>\
+         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_field</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">time_col</span><span class="p">))</span>
+
+<span class="c"># C) Adding a new column to save date and time and update with current date-time</span>
+<span class="c"># in the following format: YYYY-MM-DD HH:MM:SS</span>
+<span class="c"># e.g., 2014-03-06 16:26:37</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"ALTER TABLE {tn} ADD COLUMN '{cn}'"</span>\
+         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">date_time_col</span><span class="p">))</span>
+<span class="c"># update row for the new current date and time column, e.g., 2014-03-06 16:26:37</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"UPDATE {tn} SET {cn}=(CURRENT_TIMESTAMP) WHERE {idf}='some_id1'"</span>\
+         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">idf</span><span class="o">=</span><span class="n">id_field</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">date_time_col</span><span class="p">))</span>
+
+<span class="c"># The database should now look like this:</span>
+<span class="c"># id         date           time        date_time</span>
+<span class="c"># "some_id1" "2014-03-06"   "16:42:30"  "2014-03-06 16:42:30"</span>
+
+<span class="c"># 4) Retrieve all IDs of entries between 2 date_times</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"SELECT {idf} FROM {tn} WHERE {cn} BETWEEN '2013-03-06 10:10:10' AND '2015-03-06 10:10:10'"</span><span class="o">.</span>\
+    <span class="n">format</span><span class="p">(</span><span class="n">idf</span><span class="o">=</span><span class="n">id_field</span><span class="p">,</span> <span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">cn</span><span class="o">=</span><span class="n">date_time_col</span><span class="p">))</span>
+<span class="n">all_date_times</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'4) all entries between ~2013 - 2015:'</span><span class="p">,</span> <span class="n">all_date_times</span><span class="p">)</span>
+
+<span class="c"># 5) Retrieve all IDs of entries between that are older than 1 day and 12 hrs</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">"SELECT {idf} FROM {tn} WHERE DATE('now') - {dc} &gt;= 1 AND DATE('now') - {tc} &gt;= 12"</span><span class="o">.</span>\
+    <span class="n">format</span><span class="p">(</span><span class="n">idf</span><span class="o">=</span><span class="n">id_field</span><span class="p">,</span> <span class="n">tn</span><span class="o">=</span><span class="n">table_name</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="n">date_col</span><span class="p">,</span> <span class="n">tc</span><span class="o">=</span><span class="n">time_col</span><span class="p">))</span>
+<span class="n">all_1day12hrs_entries</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'5) entries older than 1 day:'</span><span class="p">,</span> <span class="n">all_1day12hrs_entries</span><span class="p">)</span>
+
+<span class="c"># Committing changes and closing the connection to the database file</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Download the script:<br>
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/date_time_ops.py">date_time_ops.py</a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/5_sqlite3_date_time.png" alt="5_sqlite3_date_time.png"></p>
+
+<p>Some of the really convenient functions that return the current time and
+date are:</p>
+
+<hr>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">DATE</span><span class="p">(</span><span class="s">'now'</span><span class="p">)</span> <span class="c"># returns current date, e.g., 2014-03-06</span>
+<span class="n">TIME</span><span class="p">(</span><span class="s">'now'</span><span class="p">)</span> <span class="c"># returns current time, e.g., 10:10:10</span>
+<span class="n">CURRENT_TIMESTAMP</span> <span class="c"># returns current date and time, e.g., 2014-03-06 16:42:30</span>
+<span class="c">#  (or alternatively: DATETIME('now'))</span>
+</code></pre>
+</div>
+
+<hr>
+
+<p>The screenshot below shows the print outputs of the code that we used to
+query for entries that lie between a specified date interval using</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">BETWEEN</span> <span class="s">'2013-03-06 10:10:10'</span> <span class="n">AND</span> <span class="s">'2015-03-06 10:10:10'</span>
+</code></pre>
+</div>
+
+<p>and entries that are older than 1 day via</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">WHERE</span> <span class="n">DATE</span><span class="p">(</span><span class="s">'now'</span><span class="p">)</span> <span class="o">-</span> <span class="n">some_date</span>
+</code></pre>
+</div>
+
+<p>Note that we don’t have to provide the complete time stamps here, the
+same syntax applies to simple dates or simple times only, too.\</p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/5_sqlite3_date_time_2.png" alt="5_sqlite3_date_time_2.png">\</p>
+
+<h4 id="update-mar-16-2014">Update Mar 16, 2014:</h4>
+
+<p>If’d we are interested to calculate the hours between two <code class="highlighter-rouge">DATETIME()</code>
+timestamps, we can could use the handy <code class="highlighter-rouge">STRFTIME()</code> function like this\</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">SELECT</span> <span class="p">(</span><span class="n">STRFTIME</span><span class="p">(</span><span class="s">'</span><span class="si">%</span><span class="s">s'</span><span class="p">,</span><span class="s">'2014-03-14 14:51:00'</span><span class="p">)</span> <span class="o">-</span> <span class="n">STRFTIME</span><span class="p">(</span><span class="s">'</span><span class="si">%</span><span class="s">s'</span><span class="p">,</span><span class="s">'2014-03-16 14:51:00'</span><span class="p">))</span>
+ <span class="o">/</span> <span class="o">-</span><span class="mi">3600</span>
+</code></pre>
+</div>
+
+<p>which would calculate the difference in hours between two dates in this
+particular example above (here: <code class="highlighter-rouge">48</code>) in this case.<br>
+And to calculate the difference in hours between the current <code class="highlighter-rouge">DATETIME</code>
+and a given <code class="highlighter-rouge">DATETIME</code> string, we could use the following SQLite
+syntax:\</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">SELECT</span> <span class="p">(</span><span class="n">STRFTIME</span><span class="p">(</span><span class="s">'</span><span class="si">%</span><span class="s">s'</span><span class="p">,</span><span class="n">DATETIME</span><span class="p">(</span><span class="s">'now'</span><span class="p">))</span> <span class="o">-</span> <span class="n">STRFTIME</span><span class="p">(</span><span class="s">'</span><span class="si">%</span><span class="s">s'</span><span class="p">,</span><span class="s">'2014-03-15 14:51:00'</span><span class="p">))</span> <span class="o">/</span> <span class="mi">3600</span>
+</code></pre>
+</div>
+
+<h2 id="retrieving-column-names">Retrieving column names</h2>
+
+<p>In the previous two sections we have seen how we query SQLite databases
+for data contents. Now let us have a look at how we retrieve its
+metadata (here: column names):</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>
+<span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_3'</span>
+
+<span class="c"># Connecting to the database file</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+<span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+
+<span class="c"># Retrieve column information</span>
+<span class="c"># Every column will be represented by a tuple with the following attributes:</span>
+<span class="c"># (id, name, type, notnull, default_value, primary_key)</span>
+<span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'PRAGMA TABLE_INFO({})'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="p">))</span>
+
+<span class="c"># collect names in a list</span>
+<span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+<span class="k">print</span><span class="p">(</span><span class="n">names</span><span class="p">)</span>
+<span class="c"># e.g., ['id', 'date', 'time', 'date_time']</span>
+
+<span class="c"># Closing the connection to the database file</span>
+<span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</code></pre>
+</div>
+
+<p>Download the script:<br>
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/get_columnnames.py">get_columnnames.py</a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/7_sqlite3_get_colnames_1.png" alt="7_sqlite3_get_colnames_1.png">\</p>
+
+<p>Since we haven’t created a PRIMARY KEY column for <code class="highlighter-rouge">my_table_3</code>, SQLite
+automatically provides an indexed <code class="highlighter-rouge">rowid</code> column with unique ascending
+integer values, which will be ignored in our case. Using the
+<code class="highlighter-rouge">PRAGMA TABLE_INFO()</code> function on our table, we return a list of tuples,
+where each tuple contains the following information about every column
+in the table: <code class="highlighter-rouge">(id, name, type, notnull, default_value, primary_key)</code>.\
+ So, in order to get the names of every column in our table, we only
+have to grab the 2nd value in each tuple of the returned list, which can
+be done by</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">tup</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()]</span>
+</code></pre>
+</div>
+
+<p>after the <code class="highlighter-rouge">PRAGMA TABLE_INFO()</code> call. If we would print the contents of
+the variable <code class="highlighter-rouge">names</code> now, the output would look like this:</p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/7_sqlite3_get_colnames_2.png" alt="7_sqlite3_get_colnames_2.png"></p>
+
+<h2 id="printing-a-database-summary">Printing a database summary</h2>
+
+<p>I hope we covered most of the basics about SQLite database operations in
+the previous sections, and by now we should be well equipped to get some
+serious work done using SQLite in Python.<br>
+Let me conclude this tutorial with an obligatory “last but not least”
+and a convenient script to print a nice overview of SQLite database
+tables:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">sqlite3</span>
+
+<span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">):</span>
+    <span class="s">""" Make connection to an SQLite database file """</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">conn</span><span class="p">,</span> <span class="n">c</span>
+
+<span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="n">conn</span><span class="p">):</span>
+    <span class="s">""" Commit changes and close connection to the database """</span>
+    <span class="c"># conn.commit()</span>
+    <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="k">def</span> <span class="nf">total_rows</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">print_out</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="s">""" Returns the total number of rows in the database """</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'SELECT COUNT(*) FROM {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="p">))</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">print_out</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">'</span><span class="se">\n</span><span class="s">Total rows: {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">count</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">count</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">table_col_info</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">print_out</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+    <span class="s">""" Returns a list of tuples with column informations:
+        (id, name, type, notnull, default_value, primary_key)
+    """</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'PRAGMA TABLE_INFO({})'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="p">))</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">print_out</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">Column Info:</span><span class="se">\n</span><span class="s">ID, Name, Type, NotNull, DefaultVal, PrimaryKey"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">info</span>
+
+<span class="k">def</span> <span class="nf">values_in_col</span><span class="p">(</span><span class="n">cursor</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">print_out</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="s">""" Returns a dictionary with columns as keys and the number of not-null
+        entries as associated values.
+    """</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'PRAGMA TABLE_INFO({})'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">table_name</span><span class="p">))</span>
+    <span class="n">info</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="n">col_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">info</span><span class="p">:</span>
+        <span class="n">col_dict</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">col_dict</span><span class="p">:</span>
+        <span class="n">c</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">'SELECT ({0}) FROM {1} WHERE {0} IS NOT NULL'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">table_name</span><span class="p">))</span>
+        <span class="c"># In my case this approach resulted in a better performance than using COUNT</span>
+        <span class="n">number_rows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+        <span class="n">col_dict</span><span class="p">[</span><span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">number_rows</span>
+    <span class="k">if</span> <span class="n">print_out</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">"</span><span class="se">\n</span><span class="s">Number of entries per column:"</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">col_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">'{}: {}'</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">col_dict</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">'__main__'</span><span class="p">:</span>
+
+    <span class="n">sqlite_file</span> <span class="o">=</span> <span class="s">'my_first_db.sqlite'</span>
+    <span class="n">table_name</span> <span class="o">=</span> <span class="s">'my_table_3'</span>
+
+    <span class="n">conn</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="n">connect</span><span class="p">(</span><span class="n">sqlite_file</span><span class="p">)</span>
+    <span class="n">total_rows</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">print_out</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">table_col_info</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">print_out</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">values_in_col</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">table_name</span><span class="p">,</span> <span class="n">print_out</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="c"># slow on large data bases</span>
+
+    <span class="n">close</span><span class="p">(</span><span class="n">conn</span><span class="p">)</span>
+</code></pre>
+</div>
+
+<p>Download the script:<br>
+<a href="https://github.com/rasbt/python_reference/blob/master/tutorials/sqlite3_howto/code/print_db_info.py"><code class="highlighter-rouge">print_db_info.py</code></a></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/8_sqlite3_print_db_info_1.png" alt="8_sqlite3_print_db_info_1.png"></p>
+
+<p><img src="./A thorough guide to SQLite database operations in Python_files/8_sqlite3_print_db_info_2.png" alt="8_sqlite3_print_db_info_2.png"></p>
+
+<h2 id="conclusion">Conclusion</h2>
+
+<p>I really hope this tutorial was helpful to you to get started with
+SQLite database operations via Python. I have been using the <code class="highlighter-rouge">sqlite3</code>
+module a lot recently, and it has found its way into most of my programs
+for larger data analyses.<br>
+Currently, I am working on a novel drug screening software that
+requires me to store 3D structures and other functional data for \~13
+million chemical compounds, and SQLite has been an invaluable part of my
+program to quickly store, query, analyze, and share my data.<br>
+Another smaller project that uses <code class="highlighter-rouge">sqlite3</code> in Python would be smilite,
+a module to retrieve and compare SMILE strings of chemical compounds
+from the free ZINC online database. If you are interested, you can check
+it out at: <a href="https://github.com/rasbt/smilite">https://github.com/rasbt/smilite</a>.</p>
+
+<p>If you have any suggestions or questions, please don’t hesitate to
+write me an <a href="mailto:mail@sebastianraschka.com">email</a> or leave a comment in
+the comment section below! I am looking forward to your opinions and
+ideas, and I hope I can improve and extend this tutorial in future.</p>
+
+  </article>
+
+
+</div>
+
+
+<script src="./A thorough guide to SQLite database operations in Python_files/jsapi" type="text/javascript"></script>
+<script type="text/javascript"> google.load('search', '1',
+{language : 'en'}); google.setOnLoadCallback(function() {
+ var customSearchControl = new
+ google.search.CustomSearchControl('014864919068820376681:zdkgmsqueag');
+ customSearchControl.setResultSetSize(google.search.Search.FILTERED_CSE_RESULTSET);
+ var options = new google.search.DrawOptions();
+ options.setAutoComplete(true);
+ customSearchControl.draw('cse', options); }, true);
+</script><script src="./A thorough guide to SQLite database operations in Python_files/saved_resource" type="text/javascript"></script><link href="./A thorough guide to SQLite database operations in Python_files/default+en.css" type="text/css" rel="stylesheet"><script src="./A thorough guide to SQLite database operations in Python_files/default+en.I.js.download" type="text/javascript"></script>
+
+      </div>
+    </div>
+
+    <footer class="site-footer">
+
+  <div class="wrapper">
+
+
+
+    <div class="footer-col-wrapper">
+
+
+    <div class="footer-col  social-col">
+
+
+
+      
+          <a href="http://sebastianraschka.com/email.html"><span><i class="fa fa-envelope fa-2x"></i> </span></a>
+      
+
+      
+        <a href="https://twitter.com/rasbt"> <span><i class="fa fa-twitter fa-2x"></i> </span></a>
+      
+
+      
+            <a href="https://github.com/rasbt"><span><i class="fa fa-github fa-2x"></i> </span></a>
+      
+
+      
+          <a href="https://linkedin.com/in/sebastianraschka"><span><i class="fa fa-linkedin fa-2x"></i> </span></a>
+      
+
+      
+          <a href="https://plus.google.com/u/0/+SebastianRaschka"><span><i class="fa fa-google-plus fa-2x"></i> </span></a>
+      
+
+      
+        <a href="https://www.quora.com/profile/Sebastian-Raschka-1"><span class="fa fa-2x" style="font-family: Georgia, serif; margin-left:5px;"><strong>Q</strong></span></a>
+      
+
+  </div>
+
+    <div class="footer-col  copyright-col">
+      <p>© 2013-2016 Sebastian Raschka</p>
+    </div>
+
+
+  </div>
+
+
+
+</div></footer>
+
+    <script type="text/javascript">
+         var _gaq = _gaq || [];
+         _gaq.push(['_setAccount', 'UA-38457794-1']);
+         _gaq.push(['_trackPageview']);
+         (function() {
+           var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+           ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+           var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+         })();
+ </script>
+
+
+<script type="text/javascript">
+function recordOutboundLink(link, category, action) {
+ try {
+   var pageTracker=_gat._getTracker("UA-38457794-1");
+   pageTracker._trackEvent(category, action);
+   setTimeout('document.location = "' + link.href + '"', 100)
+ }catch(err){}
+}
+</script>
+
+  
+
+  <script src="./A thorough guide to SQLite database operations in Python_files/anchor.min.js.download" type="text/javascript"></script>
+  <script>
+    var selector = 'h2, h3, h4, h5, h6';
+    /*
+    anchors.options = {
+      icon: '#',
+      visible: 'always',
+      placement: 'left',
+      class: 'bb-anchor'
+    }
+    */
+    anchors.add(selector);
+  </script>
+
+
+
+<table cellspacing="0" cellpadding="0" class="gstl_50 gssb_c" style="width: 83px; display: none; top: 168px; position: absolute; left: 247px;"><tbody><tr><td class="gssb_f"></td><td class="gssb_e" style="width: 100%;"></td></tr></tbody></table></body></html>
